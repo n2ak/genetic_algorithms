@@ -1,78 +1,66 @@
-class Generation{
-    constructor(individus = undefined,size=100){
-        this.size = size;// le nombre des individus
-        this.mostFit = null;// le meilleur individu
-        if(individus !== undefined){
-            this.individus = individus;
-            this.size = this.individus.length;
-        }else{
-            this.init();
-        }
+class Generation {
+  constructor(individuals) {
+    this.mostFit = null; // best individual
+    this.individuals = individuals;
+    this.size = individuals.length;
+  }
+  static init(size, arr, fitnessFn) {
+    const individuals = [];
+    for (let i = 0; i < size; ++i) {
+      individuals.push(new Individual(new DNA(shuffle(arr), fitnessFn)));
     }
-    init(){
-        this.individus = [];
-        for (let i = 0; i < this.size; ++i) {
-            this.individus.push(new Individu()); 
-        }
+    return new Generation(individuals);
+  }
+  calculeFitness(isCyclic) {
+    let mostFit = null;
+    this.individuals.forEach((ind) => {
+      ind.calculeFitness(isCyclic);
+      if (mostFit === null || mostFit.fitness < ind.fitness) {
+        mostFit = ind;
+      }
+    });
+    this.mostFit = mostFit;
+  }
+  crossover(individuals) {
+    if (individuals.length != this.size) {
+      throw new Exception(individuals.length + " != " + this.size);
     }
-    calculerFitness(isCyclic){
-        let mostFit = null;
-        this.individus.forEach(ind => {
-            ind.calculerFitness(isCyclic);
-            if(mostFit === null || ind.fitness < mostFit.fitness){
-                mostFit = ind;
-            }
-        });
-        this.mostFit = mostFit;
+    const newInds = [];
+    while (newInds.length < this.size) {
+      const ind1 = randomElement(individuals);
+      const ind2 = randomElement(individuals, ind1);
+      const [newInd1, newInd2] = ind1.crossover(ind2);
+      newInds.push(newInd1, newInd2);
     }
-    crossover(individus){
-        if(individus.length != this.size){
-            throw new Exception(individus.length+" != "+this.size);
-            return;
-        }
-        const newInds = [];
-        let i =  0;
-        //console.log(individus);
-        while(newInds.length < this.size){
-            const ind1 = individus[Math.floor(Math.random()*individus.length)];
-            let ind2;
-            while( (ind2 = individus[Math.floor(Math.random()*individus.length)]) === ind1){}
-            
-            const [newInd1,newInd2] = ind1.crossover(ind2); 
-            newInds.push(newInd1,newInd2);
-        }
-        //console.log(newInds.length)
-        return newInds;
+    return newInds;
+  }
+  selection() {
+    let temp = [];
+    let selectedIndividuals = [];
+    let fitnesses = this.individuals.map(function (ind) {
+      return ind.fitness;
+    });
+    let _max = Math.max(...fitnesses);
+    let _min = Math.min(...fitnesses);
+    this.individuals.forEach(function (ind) {
+      // sample with high probablity from fittest individuals
+      let occur = Math.floor(map(ind.fitness, _min, _max, 0, 7));
+      for (let i = 0; i < occur; i++) {
+        temp.push(ind);
+      }
+    });
+    temp.sort((ind1, ind2) => -1 * (ind1.fitness - ind2.fitness));
+    temp = temp.slice(0, this.size * 2);
+    for (let i = 0; i < this.size; i++) {
+      const ind = randomElement(temp);
+      if (!ind) Error("Invalid ind");
+      selectedIndividuals.push(ind);
     }
-    selection(){
-        let temp = [];
-        let individusSelectionnes = [];
-        let fitnesses = this.individus.map(function(ind){
-            return ind.fitness;
-        });
-        let _max = Math.max(...fitnesses);
-        let _min = Math.min(...fitnesses);
-        this.individus.forEach(function(ind){
-            let occur = Math.floor(map(ind.fitness,_max,_min,0,7));
-            //console.log(ind.fitness,"occurs",occur);
-            for (let i = 0; i < occur; i++) {
-                temp.push(ind);
-            }
-        });
-        temp.sort(function(ind1,ind2){
-            return ind1.fitness - ind2.fitness;
-        });
-        temp = temp.slice(0,this.size*2);
-        for(let i =0;i<this.size;i++){
-            individusSelectionnes.push(temp[Math.floor(Math.random() * temp.length)]);
-        }
-        //console.log(temp.length,individusSelectionnes.length);
-        //individusSelectionnes = temp.slice(0,this.size);
-        return individusSelectionnes;
-    }
-    mutate(mutationRate){
-        this.individus.forEach(ind => {
-            ind.mutate(mutationRate);
-        });
-    }
+    return selectedIndividuals;
+  }
+  mutate(mutationRate) {
+    this.individuals.forEach((ind) => {
+      ind.mutate(mutationRate);
+    });
+  }
 }

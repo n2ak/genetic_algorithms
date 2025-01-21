@@ -2,4 +2,4 @@
 
 ## Traveling Salesman Problem solved with genetic algorithms
 
-<img src="media/usage.gif">
+<img src="other/usage.gif">

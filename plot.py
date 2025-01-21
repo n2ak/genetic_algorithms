@@ -1,35 +1,25 @@
-import matplotlib.pyplot as plt
+import os
 import sys
+import matplotlib.pyplot as plt
 
-link = "C:/Users/PiCi/Downloads/data.txt"
 
-
-def supprimerFichier():
-    import os
+def delete_file(link):
     if os.path.exists(link):
         os.remove(link)
-        print("fichier supprimé")
-def afficherCourbe():
-    with open(link,"r") as file:
-        lines = file.readlines()
-        distances,gens = [],[]
-        for line in lines:
-            line.removesuffix("\n")
-            line.removesuffix("\r")
-            #print(line)
-            [d,g] = line.split(",")
-            distances.append(int(d))
-            gens.append(int(g))
-        # print(distances)
-        # print(gens)
-        plt.plot(gens,distances,c='r')
-        plt.xlabel("Générations")
-        plt.ylabel("Distances")
-        plt.title("Distances en fonction des générations")
+        print("file deleted")
+
+
+def show(link):
+    with open(link, "r") as file:
+        text = file.read()
+        distances = [int(d) for d in text.strip().split(",")]
+        plt.plot(distances, c='r')
+        plt.xlabel("Generation")
+        plt.ylabel("Distance")
         plt.show()
-try:
-    afficherCourbe()
-    if len(sys.argv) > 1 and sys.argv[1] == "delete":
-        supprimerFichier()
-except:
-    print("Le fichier data.txt n'est pas trouvé, essayer de telecharger les données une autre fois")
+
+
+if __name__ == "__main__":
+    link = sys.argv[1]
+    show(link)
+    delete_file(link)

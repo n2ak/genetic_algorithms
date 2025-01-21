@@ -1,38 +1,36 @@
-class Population{
-    constructor(mutationRate,isCyclic,size){
-        this.distances = [];
-        this.gens = [];
-        this.generations = 0;
-        this.mutationRate = mutationRate;
-        this.isCyclic = isCyclic;
-        this.currentGen = new Generation(undefined,size=size);
-    }
-    genererFichier(){
-        let texte = "";
-        for (let i = 0; i < this.gens.length; i++) {
-            texte += this.distances[i]+","+this.gens[i]+"\r\n";
-        }
-        return texte;
-    }
-    calculerFitness(isCyclic){
-        this.currentGen.calculerFitness(isCyclic);
-    }
-    getMostFit(){
-        return this.currentGen.mostFit;
-    }
-    selection(){
-        return this.currentGen.selection();
-    }
-    crossover(individus){
-        return this.currentGen.crossover(individus);
-    }
-    moveGen(individus){
-        this.distances.push(this.currentGen.mostFit.fitness);
-        this.gens.push(this.generations);
-        ++this.generations;
-        this.currentGen = new Generation(individus=individus);
-    }
-    mutate(){
-        this.currentGen.mutate(this.mutationRate);
-    }
+class Population {
+  constructor(mutationRate, isCyclic, size, genes, fitnessFn) {
+    this.fitnesses = [];
+    this.mutationRate = mutationRate;
+    this.isCyclic = isCyclic;
+    this.currentGen = Generation.init(size, genes, fitnessFn);
+  }
+  toText(absolute = false) {
+    let fitnesses = this.fitnesses;
+    if (absolute) fitnesses = fitnesses.map(Math.abs);
+    const text = fitnesses.join(",");
+    return text;
+  }
+  calculeFitness(isCyclic) {
+    this.currentGen.calculeFitness(isCyclic);
+  }
+  getMostFit() {
+    return this.currentGen.mostFit;
+  }
+  selection() {
+    return this.currentGen.selection();
+  }
+  crossover(individuals) {
+    return this.currentGen.crossover(individuals);
+  }
+  moveGen(individuals) {
+    this.fitnesses.push(this.currentGen.mostFit.fitness);
+    this.currentGen = new Generation(individuals);
+  }
+  mutate() {
+    this.currentGen.mutate(this.mutationRate);
+  }
+  ngen() {
+    return this.fitnesses.length;
+  }
 }
